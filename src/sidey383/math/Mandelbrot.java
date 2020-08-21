@@ -11,7 +11,7 @@ public class Mandelbrot {
 	}
 	
 	/**
-	  @return step at which it became clear that the number does not belong to the set or -1 if number belong to the set.
+	  @return step at which it became clear that the number does not belong to the set or iterCount if number belong to the set.
 	 **/
 	public int isBelongs(double x, double y) 
 	{
@@ -23,6 +23,11 @@ public class Mandelbrot {
 			zy = 2*zx*zy+y;
 			zx = x_;
 		}
+		return iterCount;
+	}
+	
+	public int getItetCount() 
+	{
 		return iterCount;
 	}
 	
