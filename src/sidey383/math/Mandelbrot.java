@@ -15,6 +15,8 @@ public class Mandelbrot {
 	 **/
 	public int isBelongs(double x, double y) 
 	{
+		if(x>2||y>2) return 0;
+		if(((x-0.25)*(x-0.25)+y*y+0.5*(x-0.25))*((x-0.25)*(x-0.25)+y*y+0.5*(x-0.25)) - 0.25*((x-0.25)*(x-0.25)+y*y) < 0) return iterCount;
 		double zx = x;
 		double zy = y;
 		for(int i = 0; i<iterCount; i++) {

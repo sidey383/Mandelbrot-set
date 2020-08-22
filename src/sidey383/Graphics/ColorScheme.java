@@ -1,12 +1,10 @@
-package sidey383.Graphics;
-
-import java.awt.Color;
+package sidey383.graphics;
 
 public interface ColorScheme {
 
 	/**
-	 * @param number 256 - belongs to a set
+	 * @param number of color
 	 **/
-	public int getColor(byte number);
+	public int getColor(int number);
 	
 }
