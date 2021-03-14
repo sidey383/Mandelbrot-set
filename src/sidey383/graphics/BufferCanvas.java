@@ -1,6 +1,7 @@
 package sidey383.graphics;
 
 import java.awt.image.BufferedImage;
+import java.lang.ref.SoftReference;
 
 import sidey383.frame.Frame;
 
@@ -23,7 +24,7 @@ public class BufferCanvas {
 	
 	public BufferCanvas(double x, double y, double width) 
 	{
-		Frame.canvas.add(this);
+		Frame.canvas.add(new SoftReference<BufferCanvas>(this));
 		this.x = x;
 		this.y = y;
 		this.width = width;

@@ -5,6 +5,7 @@ import java.awt.Graphics;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.lang.ref.SoftReference;
 import java.util.ArrayList;
 
 import javax.imageio.ImageIO;
@@ -21,7 +22,6 @@ public class Frame extends JFrame {
 	private static final long serialVersionUID = 1L;
 	
 	public static final int ITERATION_COUNT = 1000;
-	public static final double MEMORY_OVERFLOW = 0.95;
 	
 	public static Mandelbrot mandelbrot;
 	public static ColorScheme colors;
@@ -30,7 +30,7 @@ public class Frame extends JFrame {
 	public double x = 0;
 	public double y = 0;
 	public long scale = 400;
-	public static ArrayList<BufferCanvas> canvas = new ArrayList<BufferCanvas>();
+	public static ArrayList<SoftReference<BufferCanvas>> canvas = new ArrayList<SoftReference<BufferCanvas>>();
 	private BufferCanvas lastCanvas;
 	public static boolean calculated = false;
 	private long updateTime = System.currentTimeMillis();
@@ -90,6 +90,7 @@ public class Frame extends JFrame {
 	 */
 	public void update() 
 	{
+		synchronized (this) {
 		updateTime = System.currentTimeMillis();
 		double x1 = x - (double)getWidth()/2/scale;
 		double x2 = x + (double)getWidth()/2/scale;
@@ -97,10 +98,6 @@ public class Frame extends JFrame {
 		double y2 = y + (double)getHeight()/2/scale;
 		double length = Math.max((double)getWidth()/scale, (double)getHeight()/scale);
 		BufferCanvas can = lastCanvas;
-		
-		if(memoryOverflow())
-			if(canvas.size() > 0)
-				canvas.remove(0); 
 			
 		if(lastCanvas == null 
 			|| x1 < lastCanvas.getX() 
@@ -110,12 +107,19 @@ public class Frame extends JFrame {
 			|| BufferCanvas.BUFFER_SIZE / lastCanvas.getWidth() < scale ) 
 		{
 			lastCanvas = null;
-			for(BufferCanvas canv: canvas)
-				if(conatin(x1, y1, x2, y2, canv.getX(), canv.getY(), canv.getWidth()))
-					if((lastCanvas==null && BufferCanvas.BUFFER_SIZE / canv.getWidth() > scale) || (lastCanvas!=null && BufferCanvas.BUFFER_SIZE / lastCanvas.getWidth() < BufferCanvas.BUFFER_SIZE / canv.getWidth())) 
-					{
-						lastCanvas = canv;
-					}
+			for(SoftReference<BufferCanvas> canvr: canvas)
+			{
+				BufferCanvas canv;
+				if((canv = canvr.get()) != null)
+				{
+					if(conatin(x1, y1, x2, y2, canv.getX(), canv.getY(), canv.getWidth()))
+						if((lastCanvas==null && BufferCanvas.BUFFER_SIZE / canv.getWidth() > scale) || (lastCanvas!=null && BufferCanvas.BUFFER_SIZE / lastCanvas.getWidth() < BufferCanvas.BUFFER_SIZE / canv.getWidth())) 
+						{
+							lastCanvas = canv;
+						}
+				}else
+					canvas.remove(canvr);
+			}
 			if(lastCanvas == null && !calculated) 
 			{
 				Frame.calculated = true;
@@ -126,6 +130,7 @@ public class Frame extends JFrame {
 			lastCanvas =can;
 		if(lastCanvas !=null)
 			draw(lastCanvas);
+		}
 	}
 	
 	/**
@@ -166,11 +171,6 @@ public class Frame extends JFrame {
 	public static boolean conatin(double x1, double y1, double x2, double y2, double x1_, double y1_, double width) 
 	{
 		return !(x1_ > x1 || y1_ > y1 || x1_ + width < x2 || y1_ + width < y2) ;
-	}
-	
-	public boolean memoryOverflow() 
-	{
-		return (double)(Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory())/Runtime.getRuntime().maxMemory() > MEMORY_OVERFLOW;
 	}
 	
 	public static void main(String[] args) 
